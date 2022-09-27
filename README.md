@@ -1,5 +1,9 @@
 # cloudphoto
 
+### Author
+
+Made by Ramir Sultanov from 904
+
 ### Build
 
 ##### Prerequisites
