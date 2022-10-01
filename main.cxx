@@ -17,7 +17,7 @@ int upload(args::Parser& parser, const cloud::Cloud& cl) {
   const auto path = parser.get("--path"); /// !! to be checked
 
   if (album.empty()) {
-    return 2;
+    return 1;
   }
   if (
       !std::filesystem::is_directory(path)
@@ -25,7 +25,7 @@ int upload(args::Parser& parser, const cloud::Cloud& cl) {
           // != std::filesystem::perms::others_read)
       || !cl.upload(album, path)
   ) {
-    return 3;
+    return 1;
   }
 
   return 0;
@@ -38,20 +38,20 @@ int download(args::Parser& parser, const cloud::Cloud& cl) {
       parser.require("--album").optional("--path").validate();
   if (!validated) {
     std::cerr << "Invalid usage or invalid parameters" << std::endl;
-    return 4;
+    return 1;
   }
   const auto album = parser.get("--album");
   const auto path = parser.get("--path"); /// !! to be checked
 
   if (album.empty()) {
-    return 5;
+    return 1;
   }
   if (
       !std::filesystem::is_directory(path)
       // || (std::filesystem::status(path).permissions()
           // != std::filesystem::perms::group_write)
       || !cl.download(album, path)) {
-    return 6;
+    return 1;
   }
 
   return 0;
@@ -63,7 +63,7 @@ int list(args::Parser& parser, const cloud::Cloud& cl) {
       parser.optional("--album").validate();
   if (!validated) {
     std::cerr << "Invalid usage or invalid parameters" << std::endl;
-    return 7;
+    return 1;
   }
   const auto album = parser.get("--album");
 
@@ -72,11 +72,10 @@ int list(args::Parser& parser, const cloud::Cloud& cl) {
     const auto albums = cl.albums();
 
     if (!albums.has_value()) {
-      return 8;
+      return 1;
     }
 
     if (albums.value().empty()) {
-      // return 9;
       std::cout << "empty list" << std::endl;
       return 0;
     }
@@ -90,11 +89,10 @@ int list(args::Parser& parser, const cloud::Cloud& cl) {
     const auto photos = cl.get(album);
 
     if (!photos.has_value()) {
-      return 10;
+      return 1;
     }
 
     if (photos.value().empty()) {
-      // return 11;
       std::cout << "empty list" << std::endl;
       return 0;
     }
@@ -115,21 +113,21 @@ int del(args::Parser& parser, const cloud::Cloud& cl) {
       parser.require("--album").optional("--photo").validate();
   if (!validated) {
     std::cerr << "Invalid usage or invalid parameters" << std::endl;
-    return 12;
+    return 1;
   }
   const auto album = parser.get("--album");
   const auto photo = parser.get("--photo"); /// !! to be checked
 
   if (album.empty()) {
-    return 13;
+    return 1;
   }
   if (photo.empty()) {
     if (!cl.del(album)) {
-      return 14;
+      return 1;
     }
   } else {
     if (!cl.del(album, photo)) {
-      return 15;
+      return 1;
     }
   }
 
@@ -140,7 +138,7 @@ int mksite(const cloud::Cloud& cl) {
   const auto url = cl.mksite();
 
   if (url.empty()) {
-    return 16;
+    return 1;
   }
 
   std::cout << url << std::endl;
@@ -153,11 +151,11 @@ int init(cloud::Cloud& cl) {
   const auto bucket = input::read("Enter bucket name: ");
 
   if (!cl.configure(keyId, key, bucket)) {
-    return 17;
+    return 1;
   }
 
   if (!cl.init()) {
-    return 18;
+    return 1;
   }
 
   return 0;
@@ -165,7 +163,6 @@ int init(cloud::Cloud& cl) {
 
 int main(int argc, char** argv) {
   args::Parser parser(argc, argv);
-  // std::cout << parser.next() << std::endl;
   cloud::Cloud cl;
   enum Command {
     UPLOAD,
@@ -186,23 +183,15 @@ int main(int argc, char** argv) {
   };
 
   const auto arg1 = parser.next();
-  // if (parser.next().find("--") == std::string::npos) {
-  //   std::cout << "Invalid usage or invalid parameters" << std::endl;
-  //   return 1;
-  // }
-  // if (parser.next().find("--") != std::string::npos) {
-  //   std::cout << "Invalid usage or invalid parameters" << std::endl;
-  //   return 1;
-  // }
   if (command.find(arg1) == command.end()) {
     std::cerr << "Unknown command, see usage" << std::endl;
-    return 19;
+    return 1;
   }
   // std::cout << command.at(next) << std::endl;
   if (command.at(arg1) != Command::INIT) {
     if (!cl.init()) {
       std::cerr << "Can not initialise 'cloud::Cloud' instance" << std::endl;
-      return 20;
+      return 1;
     }
   }
   int returnCode = 0;
@@ -245,12 +234,12 @@ int main(int argc, char** argv) {
     break;
   default:
     std::cerr << "Unknown command" << std::endl;
-    return 21;
+    return 1;
   }
 
   if (!cl.deinit()) {
     std::cerr << "Bad deinitialization" << std::endl;
-    return 22;
+    return 1;
   }
   return returnCode;
 }
